@@ -26,8 +26,10 @@
     "typescript": "^5.5.4",
     "typescript-eslint": "^7.17.0"
   },
-
   "lint-staged": {
-    "*.ts": ["npm run lint:fix", "npm run format:fix"]
+    "*.ts": [
+      "npm run lint:fix",
+      "npm run format:fix"
+    ]
   }
 }
