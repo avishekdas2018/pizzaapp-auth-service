@@ -13,6 +13,7 @@ module.exports = {
   root: true,
 
   rules: {
+    "no-console": "error",
     "no-unused-vars": "off",
     "no-empty": "off",
     "ban-ts-comment": "off",
