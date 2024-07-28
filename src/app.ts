@@ -6,7 +6,7 @@ import { HttpError } from "http-errors";
 const app = express();
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("Well come to auth service...");
 });
 
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
