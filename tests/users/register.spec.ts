@@ -77,6 +77,37 @@ describe("POST /auth/register", () => {
       expect(users[0].lastName).toBe(userData.lastName);
       expect(users[0].email).toEqual(userData.email);
     });
+
+    it("should return id of the user created in the database", async () => {
+      // Arrange
+      // This section is used to set up any necessary data or context before performing the action.
+      // Here, we define the user data that will be sent in the request to create a new user.
+      const userData = {
+        firstName: "John", // First name of the user
+        lastName: "D", // Last name of the user
+        email: "john@gmail.com", // Email of the user
+        password: "password", // Password for the user
+      };
+
+      // Act
+      // This section performs the action that you want to test.
+      // We send a POST request to the `/auth/register` endpoint with the `userData` to create a new user.
+      const response = await request(app).post("/auth/register").send(userData);
+
+      // Assert
+      // This section checks that the results of the action are as expected.
+      // First, we check that the response body contains an "id" property, indicating that the user was successfully created.
+      expect(response.body).toHaveProperty("id");
+
+      // Next, we fetch the user repository to check the data directly from the database.
+      const userRepository = connection.getRepository(User);
+
+      // We retrieve all users from the database. Ideally, there should be only one user, the one we just created.
+      const users = await userRepository.find();
+
+      // Finally, we assert that the "id" returned in the response matches the "id" of the user stored in the database.
+      expect((response.body as Record<string, string>).id).toBe(users[0].id);
+    });
   });
 
   describe("Fields are missing", () => {});
