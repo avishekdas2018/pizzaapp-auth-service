@@ -4,6 +4,7 @@ import { User } from "../../src/entity/User";
 import { DataSource } from "typeorm";
 import { AppDataSource } from "../../src/config/data-source";
 import { truncateTable } from "../utils";
+import { Roles } from "../../src/constants";
 
 describe("POST /auth/register", () => {
   let connection: DataSource;
@@ -13,7 +14,8 @@ describe("POST /auth/register", () => {
   });
 
   beforeEach(async () => {
-    await truncateTable(connection);
+    await connection.dropDatabase();
+    await connection.synchronize();
   });
 
   afterAll(async () => {
@@ -107,6 +109,25 @@ describe("POST /auth/register", () => {
 
       // Finally, we assert that the "id" returned in the response matches the "id" of the user stored in the database.
       expect((response.body as Record<string, string>).id).toBe(users[0].id);
+    });
+
+    it("should assing a customer role", async () => {
+      // Arrange
+      const userData = {
+        firstName: "John",
+        lastName: "D",
+        email: "john@gmail.com",
+        password: "secure",
+      };
+
+      // Act
+      await request(app).post("/auth/register").send(userData);
+
+      // Assert
+      const userRepository = connection.getRepository(User);
+      const users = await userRepository.find();
+      expect(users[0]).toHaveProperty("role");
+      expect(users[0].role).toBe(Roles.CUSTOMER);
     });
   });
 
