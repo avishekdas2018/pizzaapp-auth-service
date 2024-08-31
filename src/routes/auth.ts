@@ -5,7 +5,6 @@ import { UserService } from "../services/UserService";
 import { AppDataSource } from "../config/data-source";
 import { User } from "../entity/User";
 import logger from "../config/logger";
-import { body } from "express-validator";
 
 const router = express.Router();
 
