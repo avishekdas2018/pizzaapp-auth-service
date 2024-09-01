@@ -1,9 +1,13 @@
+import fs from "fs";
+import path from "path";
 import { NextFunction, Response } from "express";
 import { RegisterUserRequest } from "../types";
 import { UserService } from "../services/UserService";
 import { Logger } from "winston";
 import createHttpError from "http-errors";
 import { validationResult } from "express-validator";
+import { JwtPayload, sign } from "jsonwebtoken";
+import { Config } from "../config";
 
 export class AuthController {
   constructor(
@@ -23,7 +27,7 @@ export class AuthController {
       firstName,
       lastName,
       email,
-      password: "********",
+      password: "******",
     });
     try {
       const user = await this.userService.create({
@@ -36,6 +40,53 @@ export class AuthController {
       this.logger.info(`User has been registered successfully: ${user.id}`, {
         id: user.id,
       });
+
+      let privateKey: Buffer;
+
+      try {
+        privateKey = fs.readFileSync(
+          path.join(__dirname, "../../certs/private.pem"),
+        );
+      } catch (error) {
+        const err = createHttpError(
+          500,
+          "Something went wrong while reading private key",
+        );
+        next(err);
+        return;
+      }
+
+      const payload: JwtPayload = {
+        sub: String(user.id),
+        role: user.role,
+      };
+      const accessToken = sign(payload, privateKey, {
+        algorithm: "RS256",
+        expiresIn: "1h",
+        issuer: "auth-service",
+      });
+      const refreshToken = sign(payload, Config.REFRESH_TOKEN_SECRET!, {
+        algorithm: "HS256",
+        expiresIn: "1y",
+        issuer: "auth-service",
+      });
+
+      res.cookie("accessToken", accessToken, {
+        domain: "localhost",
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60, // 1 hour         //1000 * 60 * 60 * 24 * 7  (7 days),
+        sameSite: "strict",
+        secure: true,
+      });
+
+      res.cookie("refreshToken", refreshToken, {
+        domain: "localhost",
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year         //1000 * 60 * 60 * 24 * 7  (7 days),
+        sameSite: "strict",
+        secure: true,
+      });
+
       res.status(201).json({ id: user.id });
     } catch (error) {
       next(error);
