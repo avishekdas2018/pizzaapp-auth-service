@@ -1,6 +1,7 @@
 import request from "supertest";
 import app from "../../src/app";
 import { User } from "../../src/entity/User";
+import { RefreshToken } from "../../src/entity/RefreshToken";
 import { DataSource } from "typeorm";
 import { AppDataSource } from "../../src/config/data-source";
 //import { truncateTable } from "../utils";
@@ -207,6 +208,31 @@ describe("POST /auth/register", () => {
       expect(refreshToken).not.toBeNull();
       expect(isJwt(accessToken)).toBeTruthy();
       expect(isJwt(refreshToken)).toBeTruthy();
+    });
+
+    it("should store the refresh token in the database", async () => {
+      // Arrange
+      const userData = {
+        firstName: "John",
+        lastName: "D",
+        email: "john@gmail.com",
+        password: "password",
+      };
+
+      // Act
+      const response = await request(app).post("/auth/register").send(userData);
+
+      // Assert
+      const refreshTokenRepository = connection.getRepository(RefreshToken);
+      // const refreshTokens = await refreshTokenRepository.find();
+      // expect(refreshTokens).toHaveLength(1);
+      const tokens = await refreshTokenRepository
+        .createQueryBuilder("refreshToken")
+        .where("refreshToken.userId = :userId", {
+          userId: (response.body as Record<string, string>).id,
+        })
+        .getMany();
+      expect(tokens).toHaveLength(1);
     });
   });
 
