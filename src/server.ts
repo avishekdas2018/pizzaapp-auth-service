@@ -23,4 +23,4 @@ const startServer = async () => {
   }
 };
 
-startServer();
+void startServer();

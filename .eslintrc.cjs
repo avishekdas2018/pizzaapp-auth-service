@@ -23,7 +23,7 @@ module.exports = {
     "no-unsafe-call": "off",
     "no-unsafe-member-access": "off",
     "no-misused-promises": "off",
-    "no-floating-promises": "off",
+    //"no-floating-promises": "off",
     "@typescript-eslint/no-unsafe-member-access": "off",
     "@typescript-eslint/no-unsafe-call": "off",
     "@typescript-eslint/no-unsafe-assignment": "off",
@@ -31,6 +31,6 @@ module.exports = {
     "@typescript-eslint/no-unused-vars": "off",
     "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/no-misused-promises": "off",
-    "@typescript-eslint/no-floating-promises": "off",
+    //"@typescript-eslint/no-floating-promises": "off",
   },
 };
