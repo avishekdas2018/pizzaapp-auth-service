@@ -43,7 +43,7 @@ describe("GET /auth/self", () => {
       const userData = {
         firstName: "John",
         lastName: "D",
-        email: "john1@gmail.com",
+        email: "john@gmail.com",
         password: "password",
       };
 
@@ -77,7 +77,7 @@ describe("GET /auth/self", () => {
         role: Roles.CUSTOMER,
       });
 
-      const accessToken = jwks.token({ sub: String(data.id) });
+      const accessToken = jwks.token({ sub: String(data.id), role: data.role });
       const response = await request(app)
         .get("/auth/self")
         .set("Cookie", [`accessToken=${accessToken};`])
@@ -86,6 +86,26 @@ describe("GET /auth/self", () => {
       expect(response.body as Record<string, string>).not.toHaveProperty(
         "password",
       );
+    });
+
+    it("should not return 401 if token dose not exists", async () => {
+      const userData = {
+        firstName: "John",
+        lastName: "D",
+        email: "john@gmail.com",
+        password: "password",
+      };
+
+      const userRepository = connection.getRepository(User);
+      await userRepository.save({
+        ...userData,
+        role: Roles.CUSTOMER,
+      });
+
+      const response = await request(app).get("/auth/self").send();
+
+      // Assert
+      expect(response.statusCode).toBe(401);
     });
   });
 });
