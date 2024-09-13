@@ -43,7 +43,7 @@ describe("GET /auth/self", () => {
       const userData = {
         firstName: "John",
         lastName: "D",
-        email: "john@gmail.com",
+        email: "john1@gmail.com",
         password: "password",
       };
 
@@ -61,6 +61,31 @@ describe("GET /auth/self", () => {
 
       // Assert
       expect((response.body as Record<string, string>).id).toBe(data.id);
+    });
+
+    it("should not return user password field", async () => {
+      const userData = {
+        firstName: "John",
+        lastName: "D",
+        email: "john@gmail.com",
+        password: "password",
+      };
+
+      const userRepository = connection.getRepository(User);
+      const data = await userRepository.save({
+        ...userData,
+        role: Roles.CUSTOMER,
+      });
+
+      const accessToken = jwks.token({ sub: String(data.id) });
+      const response = await request(app)
+        .get("/auth/self")
+        .set("Cookie", [`accessToken=${accessToken};`])
+        .send();
+      // Assert
+      expect(response.body as Record<string, string>).not.toHaveProperty(
+        "password",
+      );
     });
   });
 });

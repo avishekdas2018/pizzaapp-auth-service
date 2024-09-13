@@ -19,9 +19,9 @@ export class RefreshToken {
   @ManyToOne(() => User)
   user: User;
 
-  @UpdateDateColumn({ type: "timestamp" })
+  @UpdateDateColumn()
   updatedAt: Date;
 
-  @CreateDateColumn({ type: "timestamp" })
+  @CreateDateColumn()
   createdAt: Date;
 }

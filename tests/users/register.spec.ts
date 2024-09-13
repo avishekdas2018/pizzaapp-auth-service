@@ -49,16 +49,16 @@ describe("POST /auth/register", () => {
         firstName: "John",
         lastName: "D",
         email: "john@gmail.com",
-        password: "secure",
+        password: "password",
       };
 
       // Act
       const response = await request(app).post("/auth/register").send(userData);
 
       // Assert
-      expect(response.headers["content-type"]).toEqual(
-        expect.stringContaining("json"),
-      );
+      expect(
+        (response.headers as Record<string, string>)["content-type"],
+      ).toEqual(expect.stringContaining("json"));
     });
 
     it("should persist user in the database", async () => {
@@ -158,7 +158,7 @@ describe("POST /auth/register", () => {
         firstName: "John",
         lastName: "D",
         email: "john@gmail.com",
-        password: "secure",
+        password: "password",
       };
 
       const userRepository = connection.getRepository(User);
@@ -243,7 +243,7 @@ describe("POST /auth/register", () => {
         firstName: "John",
         lastName: "D",
         email: "",
-        password: "secure",
+        password: "password",
       };
 
       // Act
@@ -262,7 +262,7 @@ describe("POST /auth/register", () => {
         firstName: "",
         lastName: "D",
         email: "john@gmail.com",
-        password: "secure",
+        password: "password",
       };
 
       // Act
@@ -281,7 +281,7 @@ describe("POST /auth/register", () => {
         firstName: "John",
         lastName: "",
         email: "john@gmail.com",
-        password: "secure",
+        password: "password",
       };
 
       // Act
@@ -339,8 +339,8 @@ describe("POST /auth/register", () => {
       const userData = {
         firstName: "John",
         lastName: "D",
-        email: "johngmail.com",
-        password: "secure",
+        email: "john_gmail.com",
+        password: "password",
       };
 
       // Act
@@ -359,7 +359,7 @@ describe("POST /auth/register", () => {
         firstName: "John",
         lastName: "D",
         email: "john@gmail.com",
-        password: "sdd", // password length is 6
+        password: "pass", // password length is 6
       };
 
       // Act
