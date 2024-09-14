@@ -3,7 +3,7 @@ import { AuthRequest, RegisterUserRequest } from "../types";
 import { UserService } from "../services/UserService";
 import { Logger } from "winston";
 import { validationResult } from "express-validator";
-import { JwtPayload, sign } from "jsonwebtoken";
+import { JwtPayload } from "jsonwebtoken";
 import { TokenService } from "../services/TokenService";
 import createHttpError from "http-errors";
 import { CredentialService } from "../services/CredentialService";
@@ -215,6 +215,26 @@ export class AuthController {
         id: user.id,
       });
       res.status(200).json({ id: user.id });
+    } catch (error) {
+      next(error);
+      return;
+    }
+  }
+
+  async logout(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      await this.TokenService.deleteRefreshToken(Number(req.auth.id));
+      this.logger.info(`Refresh token has been deleted successfully`, {
+        id: req.auth.id,
+      });
+      this.logger.info(`User has been logged out successfully:`, {
+        id: req.auth.sub,
+      });
+
+      res.clearCookie("accessToken");
+      res.clearCookie("refreshToken");
+
+      res.json({ message: "User has been logged out successfully" });
     } catch (error) {
       next(error);
       return;

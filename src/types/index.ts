@@ -27,6 +27,7 @@ export interface AuthCookie {
 export interface IRefreshTokenPayload {
   id: string;
 }
+
 // export interface TokenPayload {
 //   sub: string;
 //   role: string;
