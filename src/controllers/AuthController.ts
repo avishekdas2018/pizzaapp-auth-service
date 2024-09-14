@@ -51,12 +51,6 @@ export class AuthController {
 
       // Persist refresh token
       const newRefreshToken = await this.TokenService.persistRefreshToken(user);
-      // const MS_IN_A_YEAR = 1000 * 60 * 60 * 24 * 365;
-      // const refreshTokenRepository = AppDataSource.getRepository(RefreshToken);
-      // const newRefreshToken = await refreshTokenRepository.save({
-      //   user: user,
-      //   expiresAt: new Date(Date.now() + MS_IN_A_YEAR),
-      // });
 
       const refreshToken = this.TokenService.generateRefreshToken({
         ...payload,
@@ -169,5 +163,61 @@ export class AuthController {
   async self(req: AuthRequest, res: Response) {
     const user = await this.userService.findById(Number(req.auth.sub));
     res.json({ ...user, password: undefined });
+  }
+
+  async refresh(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const payload: JwtPayload = {
+        sub: req.auth.sub,
+        role: req.auth.role,
+      };
+
+      const accessToken = this.TokenService.generateAccessToken(payload);
+
+      const user = await this.userService.findById(Number(req.auth.sub));
+
+      if (!user) {
+        const error = createHttpError(
+          400,
+          "User with token could not be found",
+        );
+        next(error);
+        return;
+      }
+
+      // Persist refresh token
+      const newRefreshToken = await this.TokenService.persistRefreshToken(user);
+
+      await this.TokenService.deleteRefreshToken(Number(req.auth.id));
+
+      const refreshToken = this.TokenService.generateRefreshToken({
+        ...payload,
+        id: String(newRefreshToken.id),
+      });
+
+      res.cookie("accessToken", accessToken, {
+        domain: "localhost",
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60, // 1 hour         //1000 * 60 * 60 * 24 * 7  (7 days),
+        sameSite: "strict",
+        secure: true,
+      });
+
+      res.cookie("refreshToken", refreshToken, {
+        domain: "localhost",
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year         //1000 * 60 * 60 * 24 * 7  (7 days),
+        sameSite: "strict",
+        secure: true,
+      });
+
+      this.logger.info(`User has been logged in successfully:`, {
+        id: user.id,
+      });
+      res.status(200).json({ id: user.id });
+    } catch (error) {
+      next(error);
+      return;
+    }
   }
 }
