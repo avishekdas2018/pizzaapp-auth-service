@@ -1,11 +1,11 @@
 import "reflect-metadata";
 import express from "express";
 import logger from "./config/logger";
+import authRouter from "./routes/auth";
+import tenantRouter from "./routes/tenant";
+import cookieParser from "cookie-parser";
 import { NextFunction, Request, Response } from "express";
 import { HttpError } from "http-errors";
-
-import authRouter from "./routes/auth";
-import cookieParser from "cookie-parser";
 
 const app = express();
 app.use(express.static("public"));
@@ -17,6 +17,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/auth", authRouter);
+app.use("/tenants", tenantRouter);
 
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
   logger.error(err.message);
