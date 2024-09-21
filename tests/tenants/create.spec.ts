@@ -79,5 +79,27 @@ describe("POST /tenants", () => {
       const tenants = await tenantRepository.find();
       expect(tenants).toHaveLength(0);
     });
+
+    it("should return 403 if user is not an admin", async () => {
+      const managerToken = jwks.token({
+        sub: "1",
+        role: Roles.MANAGER,
+      });
+
+      const tenantData = {
+        name: "Joy Kali Pizza",
+        address: "123, Main Street, Konnagar",
+      };
+
+      const response = await request(app)
+        .post("/tenants")
+        .set("Cookie", [`accessToken=${managerToken}`])
+        .send(tenantData);
+      expect(response.statusCode).toBe(403);
+
+      const tenantRepository = connection.getRepository(Tenant);
+      const tenants = await tenantRepository.find();
+      expect(tenants).toHaveLength(0);
+    });
   });
 });
