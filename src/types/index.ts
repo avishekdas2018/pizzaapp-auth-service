@@ -28,6 +28,15 @@ export interface IRefreshTokenPayload {
   id: string;
 }
 
+export interface ITenant {
+  name: string;
+  address: string;
+}
+
+export interface CreateTenantRequest extends Request {
+  body: ITenant;
+}
+
 // export interface TokenPayload {
 //   sub: string;
 //   role: string;
