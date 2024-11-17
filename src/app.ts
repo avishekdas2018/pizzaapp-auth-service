@@ -3,6 +3,7 @@ import express from "express";
 import logger from "./config/logger";
 import authRouter from "./routes/auth";
 import tenantRouter from "./routes/tenant";
+import userRouter from "./routes/user";
 import cookieParser from "cookie-parser";
 import { NextFunction, Request, Response } from "express";
 import { HttpError } from "http-errors";
@@ -18,6 +19,7 @@ app.get("/", (req, res) => {
 
 app.use("/auth", authRouter);
 app.use("/tenants", tenantRouter);
+app.use("/users", userRouter);
 
 app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
   logger.error(err.message);
