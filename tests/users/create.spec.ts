@@ -5,6 +5,8 @@ import { AppDataSource } from "../../src/config/data-source";
 import app from "../../src/app";
 import { User } from "../../src/entity/User";
 import { Roles } from "../../src/constants";
+import { createTenant } from "../utils";
+import { Tenant } from "../../src/entity/Tenant";
 
 describe("POST /users", () => {
   let connection: DataSource;
@@ -31,6 +33,8 @@ describe("POST /users", () => {
 
   describe("Given all fields", () => {
     it("should persist user in the database", async () => {
+      const tenant = await createTenant(connection.getRepository(Tenant));
+
       const adminToken = jwks.token({
         sub: "1",
         role: Roles.ADMIN,
@@ -41,7 +45,8 @@ describe("POST /users", () => {
         lastName: "D",
         email: "john@gmail.com",
         password: "password",
-        tenantId: 1,
+        tenantId: tenant.id,
+        role: Roles.MANAGER,
       };
 
       const response = await request(app)
@@ -54,11 +59,11 @@ describe("POST /users", () => {
       const users = await userRepository.find();
 
       expect(users).toHaveLength(1);
-      //expect(users[0].role).toBe(Roles.MANAGER);
       expect(users[0].email).toBe(userData.email);
     });
 
-    it("should create manager ", async () => {
+    it("should create manager user", async () => {
+      const tenant = await createTenant(connection.getRepository(Tenant));
       const adminToken = jwks.token({
         sub: "1",
         role: Roles.ADMIN,
@@ -69,7 +74,8 @@ describe("POST /users", () => {
         lastName: "D",
         email: "john@gmail.com",
         password: "password",
-        tenantId: 1,
+        tenantId: tenant.id,
+        role: Roles.MANAGER,
       };
 
       const response = await request(app)
