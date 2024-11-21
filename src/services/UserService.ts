@@ -1,8 +1,8 @@
-import { Repository, UpdateResult } from "typeorm";
+import { Brackets, Repository, UpdateResult } from "typeorm";
 import bcrypt from "bcrypt";
 import { AppDataSource } from "../config/data-source";
 import { User } from "../entity/User";
-import { LimitedUserData, UserData } from "../types";
+import { LimitedUserData, UserData, UserQueryParams } from "../types";
 import createHttpError from "http-errors";
 import { Roles } from "../constants";
 
@@ -31,7 +31,7 @@ export class UserService {
         email,
         password: hashedPasswod,
         role,
-        tenant: tenantId ? { id: tenantId } : undefined,
+        tenant: tenantId ? { id: tenantId } : null,
       });
     } catch (error) {
       const err = createHttpError(
@@ -48,16 +48,24 @@ export class UserService {
         email,
       },
       select: ["id", "email", "password", "firstName", "lastName", "role"],
+      relations: {
+        tenant: true,
+      },
     });
   }
 
-  async update(userId: number, { firstName, lastName, role }: LimitedUserData) {
+  async update(
+    userId: number,
+    { firstName, lastName, role, email, tenantId }: LimitedUserData,
+  ) {
     try {
       return await this.userRepository.update(userId, {
+        email,
         firstName,
         lastName,
         role,
-      });
+        tenant: tenantId ? { id: tenantId } : null,
+      } as Partial<User>);
     } catch (err) {
       const error = createHttpError(
         500,
@@ -76,11 +84,40 @@ export class UserService {
       where: {
         id,
       },
+      relations: {
+        tenant: true,
+      },
     });
   }
 
-  async getAll() {
-    return await this.userRepository.find();
+  async getAll(validateQuery: UserQueryParams) {
+    const queryBuilder = this.userRepository.createQueryBuilder("user");
+
+    if (validateQuery.q) {
+      const searchTerm = `%${validateQuery.q}%`;
+      queryBuilder.where(
+        new Brackets((qb) => {
+          qb.where("CONCAT(user.firstName, ' ', user.lastName) Ilike :q", {
+            q: searchTerm,
+          }).orWhere("user.email Ilike :q", { q: searchTerm });
+        }),
+      );
+    }
+
+    if (validateQuery.role) {
+      queryBuilder.andWhere("user.role = :role", {
+        role: validateQuery.role,
+      });
+    }
+
+    const result = await queryBuilder
+      .leftJoinAndSelect("user.tenant", "tenant")
+      .skip((validateQuery.currentPage - 1) * validateQuery.perPage)
+      .take(validateQuery.perPage)
+      .orderBy("user.id", "DESC")
+      .getManyAndCount();
+
+    return result;
   }
 
   async deleteById(userId: number) {

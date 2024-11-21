@@ -1,6 +1,6 @@
 import { Repository } from "typeorm";
 import { Tenant } from "../entity/Tenant";
-import { ITenant } from "../types";
+import { ITenant, TenantQueryParams } from "../types";
 
 export class TenantService {
   constructor(private tenantRepository: Repository<Tenant>) {}
@@ -12,8 +12,23 @@ export class TenantService {
     return await this.tenantRepository.update(id, tenantData);
   }
 
-  async getAll() {
-    return await this.tenantRepository.find();
+  async getAll(validateQuery: TenantQueryParams) {
+    const queryBuilder = this.tenantRepository.createQueryBuilder("tenant");
+
+    if (validateQuery.q) {
+      const searchItem = `%${validateQuery.q}%`;
+      queryBuilder.where("CONCAT(tenant.name, ' ', tenant.address) Ilike :q", {
+        q: searchItem,
+      });
+    }
+
+    const result = await queryBuilder
+      .skip((validateQuery.currentPage - 1) * validateQuery.perPage)
+      .take(validateQuery.perPage)
+      .orderBy("tenant.id", "DESC")
+      .getManyAndCount();
+
+    return result;
   }
 
   async getById(tenantId: number) {

@@ -1,4 +1,9 @@
-import express, { NextFunction, Request, Response } from "express";
+import express, {
+  NextFunction,
+  Request,
+  RequestHandler,
+  Response,
+} from "express";
 import authenticate from "../middlewares/authenticate";
 import logger from "../config/logger";
 import { TenantController } from "../controllers/TenantController";
@@ -9,6 +14,8 @@ import { Roles } from "../constants";
 import { canAccess } from "../middlewares/canAccess";
 import { CreateTenantRequest } from "../types";
 import tenantValidator from "../validators/tenant-validator";
+import listUsersValidator from "../validators/list-users-validator";
+import listTenantValidator from "../validators/list-tenant-validator";
 
 const router = express.Router();
 
@@ -16,36 +23,45 @@ const tenantRepository = AppDataSource.getRepository(Tenant);
 const tenantService = new TenantService(tenantRepository);
 const tenantController = new TenantController(tenantService, logger);
 
-router.post("/", authenticate, canAccess([Roles.ADMIN]), (req, res, next) =>
-  tenantController.create(req, res, next),
+router.post(
+  "/",
+  authenticate as RequestHandler,
+  canAccess([Roles.ADMIN]),
+  tenantValidator,
+  (req: CreateTenantRequest, res: Response, next: NextFunction) =>
+    tenantController.create(req, res, next) as unknown as RequestHandler,
 );
 
 router.patch(
   "/:id",
-  authenticate,
+  authenticate as RequestHandler,
   canAccess([Roles.ADMIN]),
   tenantValidator,
   (req: CreateTenantRequest, res: Response, next: NextFunction) =>
-    tenantController.update(req, res, next),
+    tenantController.update(req, res, next) as unknown as RequestHandler,
 );
 
-router.get("/", (req: Request, res: Response, next: NextFunction) =>
-  tenantController.getAll(req, res, next),
+router.get(
+  "/",
+  listTenantValidator,
+  (req: Request, res: Response, next: NextFunction) =>
+    tenantController.getAll(req, res, next) as unknown as RequestHandler,
 );
 
 router.get(
   "/:id",
+  authenticate as RequestHandler,
   canAccess([Roles.ADMIN]),
   (req: Request, res: Response, next: NextFunction) =>
-    tenantController.getOne(req, res, next),
+    tenantController.getOne(req, res, next) as unknown as RequestHandler,
 );
 
 router.delete(
   "/:id",
-  authenticate,
+  authenticate as RequestHandler,
   canAccess([Roles.ADMIN]),
   (req: Request, res: Response, next: NextFunction) =>
-    tenantController.delete(req, res, next),
+    tenantController.delete(req, res, next) as unknown as RequestHandler,
 );
 
 export default router;

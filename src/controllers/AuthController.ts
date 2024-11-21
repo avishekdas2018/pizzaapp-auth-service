@@ -48,6 +48,11 @@ export class AuthController {
       const payload: JwtPayload = {
         sub: String(user.id),
         role: user.role,
+        // Add tenantId to payload
+        tenant: user.tenant ? String(user.tenant.id) : "",
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
       };
 
       const accessToken = this.TokenService.generateAccessToken(payload);
@@ -126,6 +131,10 @@ export class AuthController {
       const payload: JwtPayload = {
         sub: String(user.id),
         role: user.role,
+        tenant: user.tenant ? String(user.tenant.id) : "",
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
       };
 
       const accessToken = this.TokenService.generateAccessToken(payload);
@@ -173,6 +182,10 @@ export class AuthController {
       const payload: JwtPayload = {
         sub: req.auth.sub,
         role: req.auth.role,
+        tenant: req.auth.tenant,
+        firstName: req.auth.firstName,
+        lastName: req.auth.lastName,
+        email: req.auth.email,
       };
 
       const accessToken = this.TokenService.generateAccessToken(payload);
@@ -201,7 +214,7 @@ export class AuthController {
       res.cookie("accessToken", accessToken, {
         domain: "localhost",
         httpOnly: true,
-        maxAge: 1000 * 60 * 60, // 1 hour         //1000 * 60 * 60 * 24 * 7  (7 days),
+        maxAge: 1000 * 60 * 60 * 24 * 1, // 1 day         //1000 * 60 * 60 * 24 * 7  (7 days),
         sameSite: "strict",
         secure: true,
       });
@@ -216,6 +229,7 @@ export class AuthController {
 
       this.logger.info(`User has been logged in successfully:`, {
         id: user.id,
+        message: `Welcome back ${user.firstName} ${user.lastName}`,
       });
       res.status(200).json({ id: user.id });
     } catch (error) {
