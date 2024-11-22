@@ -10,20 +10,18 @@ import { Repository } from "typeorm";
 export class TokenService {
   constructor(private refreshTokenRepository: Repository<RefreshToken>) {}
   generateAccessToken(payload: JwtPayload) {
-    let privateKey: Buffer;
+    let privateKey: string;
 
-    // if (!Config.PRIVATE_KEY) {
-    //   const err = createHttpError(
-    //     500,
-    //     "Something went wrong while reading private key",
-    //   );
-    //   throw err;
-    // }
+    if (!Config.PRIVATE_KEY) {
+      const err = createHttpError(
+        500,
+        "Something went wrong while reading private key",
+      );
+      throw err;
+    }
 
     try {
-      privateKey = fs.readFileSync(
-        path.join(__dirname, "../../certs/private.pem"),
-      );
+      privateKey = Config.PRIVATE_KEY;
     } catch (error) {
       const err = createHttpError(
         500,
