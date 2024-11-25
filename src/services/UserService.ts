@@ -1,5 +1,5 @@
 import { Brackets, Repository, UpdateResult } from "typeorm";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { AppDataSource } from "../config/data-source";
 import { User } from "../entity/User";
 import { LimitedUserData, UserData, UserQueryParams } from "../types";
@@ -23,13 +23,13 @@ export class UserService {
       throw error;
     }
     const saltRounds = 10;
-    const hashedPasswod = await bcrypt.hash(password, saltRounds);
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
     try {
       return await this.userRepository.save({
         firstName,
         lastName,
         email,
-        password: hashedPasswod,
+        password: hashedPassword,
         role,
         tenant: tenantId ? { id: tenantId } : null,
       });
